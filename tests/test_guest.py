@@ -3,6 +3,7 @@ import importlib.util
 import pathlib
 import sys
 import unittest
+from unittest.mock import Mock, patch
 
 HERE = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(HERE / 'server'))
@@ -35,6 +36,19 @@ class GuestTests(unittest.TestCase):
     def test_import_has_no_provisioning_side_effect(self):
         self.assertTrue(callable(guest.provision))
         self.assertTrue(callable(guest.revoke))
+
+    def test_new_exclusive_group_handles_null_grants_and_preserves_previous_grants(self):
+        for previous, expected in ((None, [9]), ([2, 4], [2, 4, 9])):
+            panel = Mock()
+            panel.api.return_value = {'id': 1, 'allowed_groups': previous}
+            with patch.object(guest, 'change_api') as change:
+                guest.grant_group(panel, 1, 9)
+                change.assert_called_once_with(panel, '/admin/users/1', 'PUT', {'allowed_groups': expected})
+        panel = Mock()
+        panel.api.return_value = {'id': 1, 'allowed_groups': [2, 9]}
+        with patch.object(guest, 'change_api') as change:
+            guest.grant_group(panel, 1, 9)
+            change.assert_not_called()
 
 
 if __name__ == '__main__':

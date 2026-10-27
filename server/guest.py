@@ -32,6 +32,13 @@ def change_api(panel, endpoint, method, data=None):
     return value.get('data', value)
 
 
+def grant_group(panel, user_id, group_id):
+    user = panel.api('/admin/users/' + str(user_id))
+    allowed = user.get('allowed_groups') or []
+    if group_id not in allowed:
+        change_api(panel, '/admin/users/' + str(user['id']), 'PUT', {'allowed_groups': allowed + [group_id]})
+
+
 def validate_request(r):
     if not re.fullmatch(r'[a-z][a-z0-9-]{1,18}', r.get('id', '')):
         raise ValueError('Guest ID must be 2-19 lowercase letters/digits/hyphens')
@@ -117,10 +124,7 @@ def provision(r):
         stack.save(record, data)
     if 'apiKey' not in data:
         # Exclusive groups require an explicit grant even for the key's owner.
-        user = panel.api('/admin/users/' + str(login['user']['id']))
-        allowed = user.get('allowed_groups') or []
-        if data['groupId'] not in allowed:
-            change_api(panel, '/admin/users/' + str(user['id']), 'PUT', {'allowed_groups': allowed + [data['groupId']]})
+        grant_group(panel, login['user']['id'], data['groupId'])
         key = panel.api('/keys', {'name': 'Guest-' + r['id'], 'group_id': data['groupId'], 'ip_whitelist': ['127.0.0.1/32', '::1/128']})
         data.update(apiKey=key['key'], apiKeyId=key['id'])
         stack.save(record, data)

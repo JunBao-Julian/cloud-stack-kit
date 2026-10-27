@@ -9,11 +9,14 @@ const { ClassicLevel } = require('classic-level');
 const {makePlan, applyPlan, assertSafe, targetHost, targetURL, targetOrigin, cleanSQLite, cleanLevel} = require('../lib/claude-cleanup.cjs');
 
 function fixture() {
-  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'cloud-stack-cleanup-test-'));
+  // macOS exposes /var via a system symlink. Build fixtures below its canonical
+  // temp directory, so the production no-symlink guard remains strict.
+  const temp = fs.realpathSync.native(os.tmpdir());
+  const base = fs.mkdtempSync(path.join(temp, 'cloud-stack-cleanup-test-'));
   const context = {home:path.join(base, 'user'), local:path.join(base, 'user', 'Local'), roaming:path.join(base, 'user', 'Roaming')};
   Object.values(context).forEach(p => fs.mkdirSync(p, {recursive:true}));
   return {base, context, remove() {
-    assert.equal(path.dirname(path.resolve(base)), path.resolve(os.tmpdir()));
+    assert.equal(path.dirname(path.resolve(base)), temp);
     assert.match(path.basename(base), /^cloud-stack-cleanup-test-/);
     fs.rmSync(base, {recursive:true, force:true});
   }};
