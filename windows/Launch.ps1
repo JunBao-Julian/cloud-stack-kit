@@ -27,6 +27,7 @@ if(!(Test-Path $settings)){throw 'Run Gateway after personally completing the pa
 $health=Invoke-RestMethod "http://127.0.0.1:$($c.local.apiPort)/health" -TimeoutSec 5
 if($health.status -ne 'ok'){throw 'Sub2API SSH tunnel is unavailable'}
 $cli=Get-Command claude.exe,claude.cmd -ErrorAction SilentlyContinue | Select-Object -First 1
+if(!$cli -and (Test-Path -LiteralPath (Join-Path $env:USERPROFILE '.local\bin\claude.exe'))){$cli=Get-Item -LiteralPath (Join-Path $env:USERPROFILE '.local\bin\claude.exe')}
 if(!$cli){$cli=Get-ChildItem "$env:USERPROFILE\.vscode\extensions\anthropic.claude-code-*\resources\native-binary\claude.exe" -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1}
 if(!$cli){throw 'Install Claude Code from its official distribution first'}
 Remove-Item Env:ANTHROPIC_API_KEY,Env:CLAUDE_CODE_OAUTH_TOKEN -ErrorAction SilentlyContinue

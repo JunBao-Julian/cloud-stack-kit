@@ -22,6 +22,10 @@ __pycache__/
 *.sha256
 admin_key*
 tunnel_key*
+guest_key*
+invitation.json
+request.json
+owner_known_hosts
 id_rsa*
 id_ed25519*
 known_hosts

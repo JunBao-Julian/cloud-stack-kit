@@ -22,8 +22,23 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm test
       - run: npm run check:public
-      - run: python3 -W error::ResourceWarning -m unittest discover -s tests -p test_server.py -v
+      - run: python3 -W error::ResourceWarning -m unittest discover -s tests -p 'test_*.py' -v
       - run: bash -n server/bootstrap.sh
+      - run: bash -n macos/bootstrap.sh Join-Mac.command Create-Guest.command
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm test
+      - run: bash -n macos/bootstrap.sh Join-Mac.command Create-Guest.command
+      - run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+      - run: node tests/check-mac-assets.cjs
 
   windows:
     runs-on: windows-2022

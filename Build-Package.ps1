@@ -27,7 +27,9 @@ try {
     $zip=[IO.Compression.ZipArchive]::new($zipStream,[IO.Compression.ZipArchiveMode]::Create)
     try {
         foreach($rel in ($files+@('manifest.sha256.json'))) {
-            [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip,(Join-Path $package $rel),('cloud-stack-kit/'+$rel.Replace('\','/')),[IO.Compression.CompressionLevel]::Optimal)
+            $entry=[IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip,(Join-Path $package $rel),('cloud-stack-kit/'+$rel.Replace('\','/')),[IO.Compression.CompressionLevel]::Optimal)
+            # Preserve executable bits for Finder/Terminal entrypoints on macOS.
+            if($rel -match '\.(command|sh)$'){$entry.ExternalAttributes=([int]493 -shl 16)}
         }
     } finally {$zip.Dispose();$zipStream.Dispose()}
     $hash=(Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash.ToLowerInvariant()

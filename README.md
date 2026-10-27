@@ -3,7 +3,7 @@
 [![Validate and package](https://github.com/BaoJun-UCAS/cloud-stack-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/BaoJun-UCAS/cloud-stack-kit/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-将一台专用 Ubuntu VPS 与 Windows 电脑连接起来：部署 **S-UI + Shadowsocks 2022 + Sub2API**，配置 **Clash Verge Rev 分流、UDP/TUN、SSH 隧道、登录后自启动和 Claude Code API 启动器**。
+将一台专用 Ubuntu VPS 与电脑连接起来：部署 **S-UI + Shadowsocks 2022 + Sub2API**，配置 **Clash Verge Rev 分流、UDP/TUN、SSH 隧道、登录后自启动和 Claude Code API 启动器**。服务器首次部署以 Windows 为入口；已有服务器支持 **Windows / macOS 朋友一键接入**。
 
 这是可审查、可分步执行的部署脚本。服务器地址和本机设置通过配置文件填写，密码与密钥在部署时生成，不随仓库分发。
 
@@ -38,6 +38,8 @@ flowchart LR
 已存在其他 S-UI / Sub2API 安装的主机，请先看 [迁移与完整说明](使用说明.txt)，不要直接执行 `Server` 或 `All`。
 
 ## 快速开始
+
+**只想让朋友共用已经部署的服务器？** 无需重新部署：管理员运行 `Create-Guest.cmd`（Mac：`Create-Guest.command`）生成独立受限凭据；朋友运行 `Join-Windows.cmd` 或 `Join-Mac.command`，输入邀请凭据文件路径即可。每位朋友有独立代理密钥、API Key 和上游分组，详见 [朋友接入、重启与撤销说明](docs/guest.md)。朋友自己的上游账号需要本人授权后由管理员加入对应分组。
 
 从 [Releases](https://github.com/BaoJun-UCAS/cloud-stack-kit/releases) 下载工具包并核对 SHA256，或用 Git 克隆；在项目目录打开 PowerShell。
 
