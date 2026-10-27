@@ -34,5 +34,10 @@
   "windows/Preferred-Language.ps1",
   "windows/Windows-AutoUpdate.ps1",
   "tests/config.test.cjs",
-  "tests/test_server.py"
+  "tests/test_server.py",
+  "Cleanup-Claude.cmd",
+  "windows/Clean-Claude.ps1",
+  "lib/claude-cleanup.cjs",
+  "tests/cleanup.test.cjs",
+  "docs/cleanup.md"
 ]

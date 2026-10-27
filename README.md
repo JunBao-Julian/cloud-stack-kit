@@ -7,7 +7,7 @@
 
 这是可审查、可分步执行的部署脚本。服务器地址和本机设置通过配置文件填写，密码与密钥在部署时生成，不随仓库分发。
 
-> 当前为首个公开版本。已通过脚本检查、单元测试与配置校验；尚未在全新 Windows + 全新 Ubuntu 上完整验收，arm64 也未实装。首次使用请按阶段执行，完整记录见 [验证记录](验证记录.txt)。
+> 已通过脚本检查、单元测试与配置校验；尚未在全新 Windows + 全新 Ubuntu 上完整验收，arm64 也未实装。首次使用请按阶段执行，完整记录见 [验证记录](验证记录.txt)。
 
 ## 部署后的连接
 
@@ -29,7 +29,7 @@ flowchart LR
 
 ## 准备条件
 
-- Windows 10/11、Windows PowerShell 5.1 或 PowerShell 7、OpenSSH 客户端、Node.js 20+；建议使用仍受支持的 Windows 与 Node.js LTS。
+- Windows 10/11、Windows PowerShell 5.1 或 PowerShell 7、OpenSSH 客户端、Node.js 22.13+；建议使用仍受支持的 Windows 与 Node.js LTS。
 - Clash Verge Rev **2.4.7**，脚本可通过 winget 安装锁定版本。
 - 一台专用 **Ubuntu 24.04 / 26.04** VPS，固定公网 IPv4，root SSH 可登录；支持 amd64 / arm64 资产，建议至少 1 GB 内存、10 GB 可用磁盘。
 - 云平台安全组允许 SSH（默认 TCP 22）及代理（默认 TCP/UDP 24443）。
@@ -45,6 +45,14 @@ flowchart LR
 git clone https://github.com/BaoJun-UCAS/cloud-stack-kit.git
 cd cloud-stack-kit
 ```
+
+### 0. 按需清理旧账号本地记录
+
+如果电脑曾登录已停用或被封禁的 Claude 账号，并且不再需要它的本地登录和会话数据，建议在部署前先运行根目录的 **`Cleanup-Claude.cmd`**。查看范围、保存工作并关闭相关应用后，输入 `CLEAN` 执行。已有正常配置且无清理需求可跳过。
+
+工具需要 Node.js **22.13+**，覆盖常见浏览器、Claude 桌面端、Claude Code 和 VS Code 系列编辑器的已知存储位置。**它无法区分旧账号和新账号，会清除范围内的当前登录与本地历史**；不会自动随部署执行。其他网站的共享浏览器缓存也会清空，但 Cookie、密码和书签保留。
+
+清理不会删除服务端记录或解除封禁，也不能保证账号无法关联。自定义配置、云同步、共享 SSO 等仍需本人核对。使用前请阅读 [清理范围、不可恢复的数据与手动检查项](docs/cleanup.md)。
 
 ### 1. 填写配置
 
@@ -116,6 +124,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$state\Launch.ps1" -StateDi
 ## 重启、迁移与恢复
 
 - [重启后如何启动、检查及恢复](docs/restart.md)
+- [部署前一键清理旧 Claude 本地数据](docs/cleanup.md)
 - [新电脑接入旧服务器、换服务器、完整阶段说明](使用说明.txt)
 - [可选 Windows 首选语言和更新控制](docs/windows-options.md)
 - [排错与网络检测结果解释](docs/troubleshooting.md)

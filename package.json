@@ -1,17 +1,18 @@
 {
-    "name":  "cloud-stack-kit",
-    "version":  "1.1.0",
-    "private":  true,
-    "engines":  {
-                    "node":  "\u003e=20"
-                },
-    "scripts":  {
-                    "test":  "node --test tests/*.test.cjs",
-                    "check:public":  "node lib/check-public.cjs"
-                },
-    "dependencies":  {
-                         "yaml":  "2.9.1"
-                     },
-    "description":  "Windows and Ubuntu deployment kit for S-UI, Sub2API, Clash Verge and SSH tunnels",
-    "license":  "MIT"
+  "name": "cloud-stack-kit",
+  "version": "1.2.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "check:public": "node lib/check-public.cjs"
+  },
+  "dependencies": {
+    "yaml": "2.9.1",
+    "classic-level": "3.0.0"
+  },
+  "description": "Windows and Ubuntu deployment kit for S-UI, Sub2API, Clash Verge and SSH tunnels",
+  "license": "MIT"
 }

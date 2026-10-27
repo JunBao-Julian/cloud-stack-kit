@@ -28,8 +28,8 @@ if($InstallDependencies) {
         if($LASTEXITCODE -ne 0){Write-Warning 'If Clash is already installed, confirm its version and set local.clashExe. Otherwise install it before Windows/Activate.'}
     }
 }
-if(!(Get-Command node.exe -ErrorAction SilentlyContinue)){throw 'Install Node.js 20+ or rerun with -InstallDependencies'}
-if([version]((& node.exe -p 'process.versions.node')) -lt [version]'20.0.0'){throw 'Node.js 20+ is required'}
+if(!(Get-Command node.exe -ErrorAction SilentlyContinue)){throw 'Install Node.js 22.13+ or rerun with -InstallDependencies'}
+if([version]((& node.exe -p 'process.versions.node')) -lt [version]'22.13.0'){throw 'Node.js 22.13+ is required'}
 $validationArgs=@((Join-Path $PSScriptRoot 'lib\config.cjs'),$Config)
 if($Phase -ne 'Validate'){$validationArgs+='--deploy'}
 & node.exe @validationArgs

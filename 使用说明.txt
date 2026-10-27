@@ -1,7 +1,9 @@
-Cloud Stack Kit 1.1 — Windows + Ubuntu 私人网络与 API 网关部署
+Cloud Stack Kit 1.2 — Windows + Ubuntu 私人网络与 API 网关部署
 
 快速开始请先阅读 README.md；重启与恢复见 docs/restart.md。
 可选首选语言和 Windows 更新控制见 docs/windows-options.md，部署流程默认不执行它们。
+部署前如需清理不再使用的旧 Claude 账号本地数据，可双击 Cleanup-Claude.cmd。
+它会先预览，再要求输入 CLEAN；完整范围、不可恢复的数据和手动检查项见 docs/cleanup.md。
 
 用途
 把这次部署整理成可迁移脚本：S-UI、Shadowsocks 2022 TCP/UDP、Sub2API、
@@ -12,7 +14,7 @@ PostgreSQL/Redis、SSH 管理隧道、Clash Verge TUN、浏览器分流、Claude
 普通 Server 遇到不属于本套工具的既有安装会停止，不会自动接管。
 
 适用范围
-- Windows 10/11，Windows PowerShell 5.1 或 PowerShell 7，Node.js 20+，OpenSSH 客户端。
+- Windows 10/11，Windows PowerShell 5.1 或 PowerShell 7，Node.js 22.13+，OpenSSH 客户端。
 - Clash Verge Rev 2.4.7；其他版本未作兼容性承诺。
 - 专用 Ubuntu 24.04/26.04，amd64 或 arm64，建议至少 1 GB 内存、10 GB 可用磁盘。
 - 服务器有固定公网 IPv4，SSH 可连接；SSH 初始用户为 root。
@@ -156,7 +158,8 @@ Attach 会添加新电脑自己的密钥并取回客户端配置，不重装数�
   后备，但这不等于系统级永久 kill switch。
 - 时区、地区和出口一致只能减少配置矛盾。IP 信誉、付款信息、账号记录及服务端关联
   不由本机脚本控制，不能保证不被关联或封号。请遵守上游地区和账号规则。
-- 工具不执行“清除所有旧账号”的破坏性操作，不自动删浏览器、编辑器历史或项目文件。
+- 部署流程不自动清理旧账号。Cleanup-Claude.cmd 是独立的显式确认入口，不识别账号是否被封禁，
+  会清除已识别范围内的当前登录和本地会话；它不是“清除所有关联记录”的保证，不删除代码项目。
 
 五、自启动、连接结构与恢复
 代理数据：应用 → Clash TCP/UDP/TUN → Shadowsocks → 服务器互联网出口。

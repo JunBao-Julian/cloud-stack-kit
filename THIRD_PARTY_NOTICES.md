@@ -10,6 +10,7 @@
 | Mihomo | [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo)，配置参考 [官方文档](https://wiki.metacubex.one/) |
 | CN 分流规则 | [MetaCubeX/meta-rules-dat](https://github.com/MetaCubeX/meta-rules-dat/tree/meta)，部署及运行时按上游更新 |
 | yaml | [eemeli/yaml](https://github.com/eemeli/yaml)，npm 依赖 2.9.1，ISC 许可证由依赖包附带 |
+| classic-level | [Level/classic-level](https://github.com/Level/classic-level)，npm 依赖 3.0.0，MIT 许可证；用于选择性清理 Chromium LevelDB 存储，依赖包附带其原生组件许可证 |
 | PostgreSQL / Redis / OpenSSH / UFW | 从 Ubuntu 软件源安装，遵循各自软件包许可证 |
 | Claude Code | 用户从 [官方渠道](https://code.claude.com/docs/en/setup) 安装并依服务条款使用 |
 
