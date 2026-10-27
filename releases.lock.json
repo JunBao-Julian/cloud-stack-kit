@@ -1,0 +1,9 @@
+{
+  "clashVerge": "2.4.7",
+  "sui": {"tag": "v1.6.5", "repository": "alireza0/s-ui", "assets": {
+    "amd64": {"name": "s-ui-linux-amd64.tar.gz", "sha256": "9f6ad41fe4a01488f2ac45f3faa5bb5148b1c2df2f773f10b6e830c4e2c88de6"},
+    "arm64": {"name": "s-ui-linux-arm64.tar.gz", "sha256": "4c608ef44b37ea84cbb89d24dc78fe896faa176217ed8d50c3592be2251f7f88"}}},
+  "sub2api": {"tag": "v0.2.18", "repository": "Wei-Shaw/sub2api", "assets": {
+    "amd64": {"name": "sub2api_0.2.18_linux_amd64.tar.gz", "sha256": "4c1974e84f412b84ac166b9293346d01a63ca44387decaa86d6e33d4303fd70f"},
+    "arm64": {"name": "sub2api_0.2.18_linux_arm64.tar.gz", "sha256": "d0eb44cc3b641366b84751c6e973412ced0d476f0ac7d3380309db367c97909d"}}}
+}

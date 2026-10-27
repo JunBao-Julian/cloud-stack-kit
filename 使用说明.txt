@@ -1,0 +1,212 @@
+Cloud Stack Kit 1.1 — Windows + Ubuntu 私人网络与 API 网关部署
+
+快速开始请先阅读 README.md；重启与恢复见 docs/restart.md。
+可选首选语言和 Windows 更新控制见 docs/windows-options.md，部署流程默认不执行它们。
+
+用途
+把这次部署整理成可迁移脚本：S-UI、Shadowsocks 2022 TCP/UDP、Sub2API、
+PostgreSQL/Redis、SSH 管理隧道、Clash Verge TUN、浏览器分流、Claude Code 启动器。
+包中不含当前服务器密码、私钥、订阅令牌、API Key、旧账号登录数据。
+这是新的通用部署包；不要对当前手工部署的服务器运行 Server/All。
+接入先前手工搭建的这一类服务器，请使用专门的 AttachLegacy，详见第二部分。
+普通 Server 遇到不属于本套工具的既有安装会停止，不会自动接管。
+
+适用范围
+- Windows 10/11，Windows PowerShell 5.1 或 PowerShell 7，Node.js 20+，OpenSSH 客户端。
+- Clash Verge Rev 2.4.7；其他版本未作兼容性承诺。
+- 专用 Ubuntu 24.04/26.04，amd64 或 arm64，建议至少 1 GB 内存、10 GB 可用磁盘。
+- 服务器有固定公网 IPv4，SSH 可连接；SSH 初始用户为 root。
+- 云平台安全组也需允许 SSH 端口、代理端口 TCP 和 UDP。脚本只能管理系统防火墙。
+- 不依赖域名或公开的管理面板。API 和 S-UI 面板只监听服务器 127.0.0.1。
+
+一、新电脑 + 新服务器
+1. 解压到长期保存的目录。用你日常使用的同一个 Windows 账号打开 PowerShell。
+   Activate/Rollback 需要“以管理员身份运行”；不要改用另一个管理员账号。
+
+   cd "解压目录\cloud-stack-kit"
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Setup.ps1 -Phase Init
+
+2. 编辑 config.json。最少修改：
+   instanceId：给新服务器起名，例如 us-vps-02，只允许小写字母、数字和连字符。
+   server.address：新服务器公网 IPv4。示例 203.0.113.10 不能用于实际部署。
+   server.sshPort：实际 SSH 端口，默认 22；本工具不会修改 sshd 监听端口。
+   local.clashExe：留空自动查找；自定义安装时填完整路径，JSON 中反斜杠要写为 \\。
+   region：按实际节点所在地填写；默认美国洛杉矶，而非自动识别。
+   不想更改 Windows 时区、区域和格式时，把 region.enabled 改为 false。
+   bootstrapProxy：仅用于 npm 初始下载，例如 http://127.0.0.1:7897；不含账号密码。
+
+3. 安装依赖并检查模板：
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Setup.ps1 -Phase Validate -InstallDependencies
+
+   上述命令可通过 winget 安装 Node.js。Windows 阶段加 -InstallDependencies
+   可安装锁定版本的 Clash Verge。若提示 OpenSSH 缺失，在 Windows“可选功能”安装
+   OpenSSH 客户端，或在管理员 PowerShell 中运行：
+   Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
+   若 winget/下载不可达，先安装依赖或使用一条已有可用的网络；工具不附带公共代理。
+
+4. 部署服务器：
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Setup.ps1 -Phase Server
+
+   首次 SSH 提示时，先通过云平台控制台核对服务器主机指纹，再接受。
+   密码由 ssh 客户端交互读取，不写入配置或脚本。首次使用现有 SSH 私钥时：
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Setup.ps1 -Phase Server -ExistingAdminKey "X:\安全目录\旧管理私钥"
+
+   工具为这台电脑生成管理私钥和独立隧道私钥，验证新管理密钥可登录后，关闭 SSH
+   密码认证。请立即将管理私钥保存在你自己的加密备份中；丢失时需云平台控制台恢复。
+   本工具不自动修改云平台控制台密码，也不备份云平台账号。
+
+5. 准备本机，不切换正在使用的系统代理：
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Setup.ps1 -Phase Windows -InstallDependencies
+
+   它会生成本机配置、验证辅助代理、连接 SSH 隧道、下载分流规则、创建启动器。
+   Clash 初次启动若有交互提示，完成后重跑 Windows 阶段即可。
+
+6. 在同一 Windows 账号的管理员 PowerShell 切换 Clash：
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Setup.ps1 -Phase Activate
+
+   这一步可能导致短暂重连。工具先备份原配置，再安装/启动 Clash 自带服务，
+   启用 TUN 和系统代理，验证主出口；失败则尝试回退。辅助代理保持运行。
+   不要在无法接受重连的工作期间执行。没有脚本能保证切换网络时零中断。
+
+7. 打开 %LOCALAPPDATA%\CloudStack\你的instanceId 文件夹：
+   Panel.lnk：打开 Sub2API 面板；登录信息在同目录 panel-login.txt。
+   Browser.lnk：独立 Edge 配置，通过辅助代理访问网页及检测网站。
+   Recover.lnk：补启动 SSH/辅助代理守护进程，不主动关闭已有 Clash。
+   Claude.lnk：用本实例 API 和独立配置目录启动 Claude Code。
+
+   管理员本人阅读面板中的部署承诺并决定是否接受，然后运行：
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Setup.ps1 -Phase Gateway
+
+   该阶段生成仅允许隧道回环来源的下游 API Key。上游 Claude 账号/OAuth 授权仍需
+   本人在面板完成。脚本不会代为接受承诺、登录账号、提取浏览器令牌或绕过账户规则。
+   Claude Pro/Max 能否用于第三方网关取决于上游当前规则；技术连通不代表使用获授权。
+
+8. 从官方渠道安装 Claude Code，或安装其 VS Code 扩展内置 CLI。
+   安装来源：https://code.claude.com/docs/en/setup
+   在项目目录启动：
+   powershell -NoProfile -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\CloudStack\你的instanceId\Launch.ps1" -StateDir "$env:LOCALAPPDATA\CloudStack\你的instanceId" -Mode Claude
+   启动器只设置本进程的 API 和代理环境，不覆盖所有终端的全局配置。
+   首次目录信任、客户端初始化等提示仍由本人处理。
+
+9. 验证：
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Setup.ps1 -Phase Check
+   再使用真实浏览器打开 https://ip.net.coffee/，检查 IPv4、WebRTC、DNS 和时区。
+   Check 检查 TCP 出口、原生 STUN UDP、TUN 状态与服务健康；不消耗上游模型额度。
+   还需在完成上游授权后本人进行一次模型调用，才能确认整条模型调用链正常。
+
+熟悉以上流程后可在管理员 PowerShell 运行 -Phase All -InstallDependencies，
+自动串行执行 Server → Windows → Activate → Gateway → Check。
+首次 SSH、系统安装提示和账号授权仍需交互。首次部署推荐分阶段执行，便于排错。
+
+二、只换电脑，保留同一服务器
+如果服务器由本工具部署，使用以下 Attach 流程：
+1. 拷贝这个“无密钥工具包”和原来的非敏感 config.json 到新电脑。
+2. 从你自己的加密备份临时取出旧电脑 admin_key，作为初次连接凭据。
+3. 保持 instanceId、server.address 和所有 server 端口与原部署一致。
+   本机 Clash 路径可以修改。多台电脑共用订阅时，local 端口和分流策略应保持一致。
+4. 运行：
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Setup.ps1 -Phase Attach -ExistingAdminKey "X:\安全目录\admin_key"
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Setup.ps1 -Phase Windows -InstallDependencies
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Setup.ps1 -Phase Activate
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Setup.ps1 -Phase Gateway
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Setup.ps1 -Phase Check
+
+Attach 会添加新电脑自己的密钥并取回客户端配置，不重装数据库或清空已有账号。
+它适用于已有 /var/lib/cloud-stack/credentials.json 的已登记实例。
+旧电脑退役后，应在服务器 authorized_keys 中撤销旧设备公钥；工具不擅自撤销其他设备。
+
+如果是目前先前手工搭建、尚未由工具登记的服务器：
+- 用 Init 创建配置，填写同一台服务器 IP/端口和一个新的工具 instanceId。
+- 准备先前保存的管理私钥；服务器已经关闭密码登录，不能再使用云平台显示的旧密码。
+- 第一次把上述 Attach 命令替换为：
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\Setup.ps1 -Phase AttachLegacy -ExistingAdminKey "X:\安全目录\原管理私钥"
+- 再执行 Windows、Activate、Gateway、Check。
+- AttachLegacy 只支持这次采用的原生部署布局：/root/deployment/credentials.json、
+  /usr/local/s-ui/db/s-ui.db、/etc/sub2api.env。它会只读核对管理口、已有节点、
+  订阅、节点密钥与 API 登录，然后登记元数据、添加新电脑隧道密钥和工具备份任务。
+  保留已有节点、数据库、上游账号和下游 Key，不重新安装服务、不创建重复节点。
+- 登记会更新共享的 S-UI 订阅模板，旧电脑下次更新订阅也会得到新的分流模板。
+  如果仍需保留旧电脑的不同分流策略，先安排独立订阅或不要执行登记。
+- 登记后其他电脑都使用 Attach；若登记中途失败并已产生元数据，改用 Attach 重试。
+- 对已登记的旧部署执行 Server 会被拒绝；升级/重装应另做迁移计划。
+- 任意其他手工部署不能假定与此格式兼容，校验不匹配时会停止。
+
+三、同一电脑换新服务器
+- 为新服务器创建另一份配置文件，使用新的 instanceId 和新 IP。
+- 先用新配置执行 Server 部署，新旧服务器不会互相覆盖。
+- 默认本地端口相同，不能同时启动两套辅助代理/SSH。准备切换时，用旧配置执行：
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\Setup.ps1 -Phase Suspend -Config .\old-config.json
+  等约 10 秒后，用新配置执行 Windows、Activate、Gateway、Check。
+- Suspend 停止旧实例的 SSH/辅助代理并取消其工具创建的自启动快捷方式，保留 Clash。
+  使用旧 API 的连接会中断；如需同时运行两套，分配不同本地端口。
+- 新服务器不会自动复制旧 Claude 授权、计费数据或账号库；默认独立部署并由本人授权。
+  要迁移数据库，请先做加密备份和明确的恢复计划，不要把完整旧凭据塞进工具压缩包。
+
+四、默认分流及检测如何理解
+- Edge、Chrome、Firefox、Brave、Opera、Vivaldi、Arc 的公网 TCP/UDP 走服务器。
+  国内网页也走服务器；本机/局域网和服务器地址例外，以保证管理和局域网访问。
+- 其他程序：国内域名/IP 直连，其余走服务器；Claude/Anthropic 域名优先代理。
+- STUN 常用端口优先代理。TUN 接管 IPv4/IPv6，DNS 抑制 AAAA；不全局禁用 WebRTC。
+- 服务器未配置 IPv6 出口时，公网 IPv6 连接可能失败；不能把“没返回地址”当成
+  所有浏览器/所有协议都已验证。最终以实际浏览器测试为准。
+- policy.browserMode 改为 split 可恢复浏览器国内 TCP 直连、浏览器 UDP 代理，
+  这会使某些国内查 IP 接口再次显示本地国内 IPv4，属于该策略的预期。
+- 进程规则只覆盖列出的浏览器名称。新浏览器、改名程序、嵌入式 WebView 需单独检查。
+- 本工具不是全系统断网保护器：退出 Clash/TUN 后，应用可能直连。代理组没有 DIRECT
+  后备，但这不等于系统级永久 kill switch。
+- 时区、地区和出口一致只能减少配置矛盾。IP 信誉、付款信息、账号记录及服务端关联
+  不由本机脚本控制，不能保证不被关联或封号。请遵守上游地区和账号规则。
+- 工具不执行“清除所有旧账号”的破坏性操作，不自动删浏览器、编辑器历史或项目文件。
+
+五、自启动、连接结构与恢复
+代理数据：应用 → Clash TCP/UDP/TUN → Shadowsocks → 服务器互联网出口。
+API：Claude Code → 127.0.0.1:18080 → SSH 转发 → Sub2API → 本人授权的上游账号。
+S-UI 管理和订阅也经 SSH 转发；它们不在公网裸露。
+Windows 登录后，启动文件夹快捷方式启动 Clash 和独立守护进程。
+网络恢复时 SSH 会重试；这是“用户登录后启动”，不是无人登录的系统开机任务。
+服务器服务由 systemd 随系统启动。不会把 root 私钥交给隧道进程。
+
+回退最近一次 Activate：
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Setup.ps1 -Phase Rollback
+需要同一用户的管理员 PowerShell。恢复之前的 Clash 配置、系统代理、区域设置。
+辅助代理/SSH 保持运行以便修复。旧服务安装和下载文件不会自动卸载。
+快照在本机受保护的 rollback-* 目录，包含旧配置密钥，不可公开分享。
+
+六、保存位置与备份
+本机：%LOCALAPPDATA%\CloudStack\instanceId
+  admin_key：管理密钥；tunnel_key：仅允许转发面板/API 的隧道密钥。
+  known_hosts：已确认的 SSH 主机指纹；重装同 IP 服务器后不要盲目删除指纹。
+  client.json、panel-login.txt、claude-settings.json：敏感，不进代码包。
+  Tunnel/AuxProxy 的 stderr/error 日志：排查断线，不应公开发全部日志。
+  ClaudeCode/EdgeProfile：本实例独立的本地客户端数据。
+服务器：/var/lib/cloud-stack，root 专用权限；/etc/sub2api.env 保存后端密钥。
+每日按配置 IANA 时区约 03:20 生成备份，保留最近 7 份：/var/backups/cloud-stack。
+备份包含数据库、S-UI SQLite、环境文件及部署凭据；仅有“本机备份”，没有异地容灾。
+应定期自行加密导出，并演练恢复。备份包本身敏感，不能放入公开仓库或本工具包。
+
+七、重复执行和版本边界
+- 使用相同 ID/IP 可重跑失败的阶段；Server 可能重启服务，Attach/AttachLegacy 不重装服务。
+- 服务器端口发生变化时脚本拒绝自动迁移，避免破坏授权、节点和防火墙之间的一致性。
+- 修改本地端口或辅助代理参数前，先 Suspend，再 Windows/Activate。
+- 多台客户端的 S-UI 订阅模板共享；改变 browserMode 会影响其他客户端下次订阅更新。
+- releases.lock.json 固定 S-UI v1.6.5、Sub2API v0.2.18 及官方资产 SHA256。
+  包内 package-lock.json 锁定 YAML 库。规则库通过 HTTPS 自动更新，不是固定快照。
+- 工具不是自动升级器。未来版本需核对面板 API、配置格式、发布资产摘要并重新验证。
+- 不要将 config.json、运行状态目录或已有部署凭据一起上传 GitHub。
+
+八、脚本验证
+   npm ci --ignore-scripts --no-audit --no-fund
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Validate-Kit.ps1
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Validate-Kit.ps1 -CoreExe "Clash目录\verge-mihomo.exe" -Proxy http://127.0.0.1:7897
+Ubuntu 上：python3 -m unittest discover -s tests -p test_server.py -v
+Validate-Kit 只在工具目录生成假凭据配置并调用内核 -t，不启动 TUN、不切换现有网络。
+已完成的具体检查与尚未覆盖的内容见 验证记录.txt。
+
+参考项目和配置来源
+https://github.com/alireza0/s-ui/tree/v1.6.5
+https://github.com/Wei-Shaw/sub2api/tree/v0.2.18
+https://github.com/clash-verge-rev/clash-verge-rev/tree/v2.4.7
+https://wiki.metacubex.one/config/tun/
+https://wiki.metacubex.one/config/rules/
+https://github.com/MetaCubeX/meta-rules-dat/tree/meta
+https://code.claude.com/docs/en/llm-gateway

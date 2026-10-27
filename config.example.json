@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "instanceId": "my-us-vps",
+  "server": {"address": "203.0.113.10", "sshPort": 22, "proxyPort": 24443, "apiPort": 8080, "suiPort": 2095, "subPort": 2096},
+  "local": {"mainPort": 7897, "auxPort": 17897, "dnsPort": 1053, "auxDnsPort": 11053, "apiPort": 18080, "suiPort": 12095, "subPort": 12096, "clashExe": "", "autoStart": true},
+  "policy": {"browserMode": "proxy"},
+  "region": {"enabled": true, "windowsTimeZone": "Pacific Standard Time", "ianaTimeZone": "America/Los_Angeles", "culture": "en-US", "geoId": 244},
+  "bootstrapProxy": ""
+}
